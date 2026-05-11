@@ -112,13 +112,22 @@ void MainWindow::saveToFile()
         obj["FinalY"] = shape->getFinalPosition().y();
 
         /* Проверяем наличие связи между фигурами */
-        if(auto lockedShape = shape->m_OtherShape.lock())
+        if(!shape->m_OtherShape.isEmpty())
         {
-            obj["indexOtherShape"] = manager->v_Shapes.indexOf(lockedShape);
+            QJsonArray index;
+            for(auto otherShape : shape->m_OtherShape)
+            {
+                if(auto lockedShape = otherShape.lock())
+                {
+                    index.append(manager->v_Shapes.indexOf(lockedShape));
+                }
+            }
+            obj["indexOtherShape"] = index;
         }
         else
         {
             obj["indexOtherShape"] = -100;
+
         }
 
         shapesArray.append(obj);
@@ -158,19 +167,19 @@ void MainWindow::loadFromFile()
         /* Проходим по массиву и создаем фигуры */
         for (int i = 0; i < shapesArray.size(); ++i)
         {
-            QJsonObject obj;
-            obj = shapesArray[i].toObject();
+            QJsonObject obj = shapesArray[i].toObject();
             manager->CreateShape(QPoint(obj["StartX"].toInt(), obj["StartY"].toInt()), QPoint(obj["FinalX"].toInt(), obj["FinalY"].toInt()), static_cast<TypeShapes>(obj["type"].toInt()));
+            manager->v_Shapes.last()->EndResizeOrMove();
         }
         /* Проходим и устанавливаем связи */
         for (int i = 0; i < shapesArray.size(); ++i)
         {
-            QJsonObject obj;
-            obj = shapesArray[i].toObject();
-            int indexOtherShape = obj["indexOtherShape"].toInt();
-            if (!manager->v_Shapes.isEmpty() && indexOtherShape >= 0 && indexOtherShape < manager->v_Shapes.size())
+            QJsonObject obj = shapesArray[i].toObject();
+
+            QJsonArray readArray = obj["indexOtherShape"].toArray();
+            for (const QJsonValue &value : readArray)
             {
-                manager->v_Shapes[i]->m_OtherShape = manager->v_Shapes.at(indexOtherShape);
+                manager->v_Shapes[i]->m_OtherShape.append(manager->v_Shapes.at(value.toInt()));
             }
         }
 
@@ -199,9 +208,12 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 {
                     painter.drawLine(polygon->boundingRect().center(), polygon->m_OtherPoint);
                 }
-                if(auto other = polygon->m_OtherShape.lock())
+                for(auto otherShape : polygon->m_OtherShape)
                 {
-                    painter.drawLine(polygon->boundingRect().center(), other->boundingRect().center());
+                    if(auto lockedShape = otherShape.lock())
+                    {
+                        painter.drawLine(polygon->boundingRect().center(), lockedShape->boundingRect().center());
+                    }
                 }
             }
 

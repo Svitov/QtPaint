@@ -116,7 +116,7 @@ bool ManagerShapes::FindShape(QPoint point)
                 {
                     if (lockedShape) {
                         lockedShape->m_OtherPoint = QPoint(-100, -100);
-                        lockedShape->m_OtherShape = tempShape;
+                        lockedShape->m_OtherShape.append(tempShape);
                     }
                     m_StateMachine = StateMachine::CreateConnect;
                 }

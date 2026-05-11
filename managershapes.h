@@ -2,7 +2,6 @@
 #define MANAGERSHAPES_H
 
 #include <shape.h>
-#include <QList>
 
 /**
  * @brief Состояния работы менеджера фигур.

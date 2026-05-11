@@ -3,6 +3,7 @@
 
 #include <QPolygon>
 #include <memory>
+#include <QList>
 
 /**
  * @brief Доступные фигуры.
@@ -75,7 +76,7 @@ public:
     QPoint getFinalPosition() const { return m_FinalPosition; }
 
 
-    std::weak_ptr<Shape> m_OtherShape;
+    QList<std::weak_ptr<Shape>> m_OtherShape;
     QPoint m_OtherPoint = QPoint(-100, -100);
     TypeShapes getType() const { return m_Type; }
 
